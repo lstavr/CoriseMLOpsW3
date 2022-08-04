@@ -1,5 +1,8 @@
 .idea/
 
+app/__pycache__/
+data/logs.out
+
 *.DS_Store
 .AppleDouble
 .LSOverride
