@@ -118,8 +118,8 @@ def startup_event():
         store them as global variables
     """
     global classifier
-    classifier = NewsCategoryClassifier(GLOBAL_CONFIG)
     global log
+    classifier = NewsCategoryClassifier(GLOBAL_CONFIG)
     log = open(os.path.abspath(GLOBAL_CONFIG['service']['log_destination']), 'w', encoding='utf-8')
     logger.info("Setup completed")
 
@@ -132,6 +132,7 @@ def shutdown_event():
         1. Make sure to flush the log file and close any file pointers to avoid corruption
         2. Any other cleanups
     """
+    global log
     if log is not None:
         log.flush()
         log.close()
@@ -155,15 +156,20 @@ def predict(request: PredictRequest):
         }
         3. Construct an instance of `PredictResponse` and return
     """
+    global classifier
+    global log
+
     start_time = time.time()
     request_dict = vars(request)
+
     label = classifier.predict_label(request_dict)
     scores_dict = classifier.predict_proba(request_dict)
     end_time = time.time()
     timestamp = datetime.datetime.fromtimestamp(start_time).strftime('%Y:%m:%d %H:%M:%S')
-
     latency = (end_time - start_time) / 1000
+
     log.write(f'{timestamp}\t{request_dict}\t{scores_dict}\t{latency}\n')
+    log.flush()
 
     return PredictResponse(scores=scores_dict, label=label)
 
